@@ -1,0 +1,65 @@
+/* ===========================================
+   banner.module.css
+   Banner Component Styles
+   - Hero banner เต็มจอ + dark overlay + ข้อความกลาง
+   - ปรับจากเว็บ Venue เดิม (banner.module.css) ให้เข้ากับ Hotel theme
+   =========================================== */
+
+.banner {
+  display: block;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 92vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dark overlay ทับรูปพื้นหลัง — ให้อ่านข้อความได้ชัด */
+.banner::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.3) 40%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+  z-index: 10;
+}
+
+/* ข้อความตรงกลาง banner */
+.bannerText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  text-align: center;
+  color: #ffffff;
+  width: 80%;
+  max-width: 700px;
+}
+
+/* หัวข้อหลัก — สีทอง ตัวหนา */
+.bannerText h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  color: #f5d78e;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.9);
+}
+
+/* หัวข้อรอง — สีทองอ่อน น้ำหนักเบา */
+.bannerText h3 {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: rgba(220, 200, 170, 0.9);
+  line-height: 1.6;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
