@@ -8,13 +8,16 @@
 // ===========================================
 
 // ----- Hotel -----
-// ตาม models/Hotel.js: name, address, tel
+// ตาม models/Hotel.js: name, address, tel, picture, rating, description
 // + _id, __v, id จาก MongoDB
 interface HotelItem {
   _id: string;
   name: string;
   address: string;
   tel: string;
+  picture?: string | null;
+  rating?: number | null;
+  description?: string | null;
   __v: number;
   id: string;
 }

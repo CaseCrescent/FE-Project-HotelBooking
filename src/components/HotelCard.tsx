@@ -9,9 +9,11 @@
 // ===========================================
 
 "use client";
+import Image from "next/image";
 import { useAppSelector } from "@/redux/store";
 import { getHotelMeta } from "@/redux/features/bookSlice";
 import StarRating from "@/components/StarRating";
+import { isValidImageUrl } from "@/libs/isValidImageUrl";
 
 export default function HotelCard({
   hotelId,
@@ -31,8 +33,9 @@ export default function HotelCard({
 
   const defaultImages = ["/img/hotel.jpg", "/img/hotel2.jpg", "/img/hotel3.jpg"];
   const imageIndex = hotelName.split("").reduce((sum, c) => sum + c.charCodeAt(0), 0) % defaultImages.length;
-  // meta.picture (Redux) takes priority over server imgSrc, then falls back to default
-  const displayImage = imgSrc || meta.picture || defaultImages[imageIndex];
+
+  const rawImage = imgSrc || meta.picture;
+  const displayImage = isValidImageUrl(rawImage) ? rawImage! : defaultImages[imageIndex];
   const displayRating = hotelRating ?? meta.rating;
   const displayDescription = hotelDescription ?? meta.description;
 
@@ -40,13 +43,23 @@ export default function HotelCard({
     <div className="w-full max-w-[340px] rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_16px_50px_rgba(220,183,113,0.12)] cursor-pointer group border border-white/[0.04]">
       {/* ===== รูปภาพ — ไม่มี badge ทับ ===== */}
       <div className="relative w-full h-[200px] sm:h-[210px] overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={displayImage}
-          alt={hotelName}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
-          className="group-hover:scale-105 transition-transform duration-700"
-        />
+        {displayImage.startsWith("data:") ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={displayImage}
+            alt={hotelName}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            className="group-hover:scale-105 transition-transform duration-700"
+          />
+        ) : (
+          <Image
+            src={displayImage}
+            alt={hotelName}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+        )}
       </div>
 
       {/* ===== ข้อมูล ===== */}

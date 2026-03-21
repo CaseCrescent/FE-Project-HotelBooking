@@ -10,8 +10,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // เพิ่ม body size limit สำหรับ Server Actions (default 1MB ไม่พอสำหรับ base64 image)
-  serverActions: {
-    bodySizeLimit: "10mb",
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
   },
 
   // ข้าม ESLint ตอน build (errors เป็นแค่ type warnings ไม่กระทบการทำงาน)
@@ -22,10 +24,8 @@ const nextConfig: NextConfig = {
   // อนุญาตให้โหลดรูปจาก domains เหล่านี้ (เพิ่ม domain ได้ภายหลัง)
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**",
-      },
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "**" },
     ],
   },
 

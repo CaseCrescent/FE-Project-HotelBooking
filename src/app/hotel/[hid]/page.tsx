@@ -10,6 +10,7 @@ import getHotel from "@/libs/getHotel";
 import Link from "next/link";
 import HotelDetailClient from "./HotelDetailClient";
 import HotelDetailImage from "./HotelDetailImage";
+import { isValidImageUrl } from "@/libs/isValidImageUrl";
 
 export default async function HotelDetailPage({
   params,
@@ -31,7 +32,7 @@ export default async function HotelDetailPage({
   // รูปภาพ fallback deterministic จากชื่อโรงแรม
   const defaults = ["/img/hotel.jpg", "/img/hotel2.jpg", "/img/hotel3.jpg"];
   const idx = hotel.name.split("").reduce((s: number, c: string) => s + c.charCodeAt(0), 0) % defaults.length;
-  const imgSrc = hotel.picture || defaults[idx];
+  const imgSrc = isValidImageUrl(hotel.picture) ? hotel.picture! : defaults[idx];
 
   return (
     // ⚠️ ใช้ inline style แทน Tailwind pt-24 เพราะ JIT อาจไม่ generate class ใหม่
@@ -96,8 +97,13 @@ export default async function HotelDetailPage({
             minWidth: 0,
           }}
         >
-          {/* Stars + Description (Client Component อ่านจาก Redux) */}
-          <HotelDetailClient hotelId={hotel._id} hotelName={hotel.name} />
+          {/* Stars + Description — backend เป็น primary, Redux เป็น fallback */}
+          <HotelDetailClient
+            hotelId={hotel._id}
+            hotelName={hotel.name}
+            apiRating={hotel.rating}
+            apiDescription={hotel.description}
+          />
 
           {/* Info rows */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>

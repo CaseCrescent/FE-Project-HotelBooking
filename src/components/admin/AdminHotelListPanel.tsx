@@ -15,6 +15,8 @@ interface Hotel {
   address: string;
   tel: string;
   picture?: string;
+  rating?: number;
+  description?: string;
 }
 
 interface AdminHotelListPanelProps {
@@ -60,7 +62,10 @@ export default function AdminHotelListPanel({
         // Hotel cards
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           {hotels.map((hotel) => {
+            // Backend value takes priority; Redux meta is fallback
             const meta = getHotelMeta(hotelMetaStore, hotel._id, hotel.name);
+            const displayRating = hotel.rating ?? meta.rating;
+            const displayDescription = hotel.description ?? meta.description;
             return (
               <div
                 key={hotel._id}
@@ -86,7 +91,7 @@ export default function AdminHotelListPanel({
                   </p>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <Rating
-                      value={meta.rating}
+                      value={displayRating}
                       readOnly
                       size="small"
                       sx={{
@@ -94,9 +99,9 @@ export default function AdminHotelListPanel({
                         "& .MuiRating-iconEmpty": { color: "rgba(255,255,255,0.1)" },
                       }}
                     />
-                    {meta.description && (
+                    {displayDescription && (
                       <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.2)" }}>
-                        {meta.description}
+                        {displayDescription}
                       </span>
                     )}
                   </div>

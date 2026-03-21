@@ -8,6 +8,7 @@
 "use client";
 import { useAppSelector } from "@/redux/store";
 import { getHotelMeta } from "@/redux/features/bookSlice";
+import { isValidImageUrl } from "@/libs/isValidImageUrl";
 
 export default function HotelDetailImage({
   hotelId,
@@ -20,7 +21,8 @@ export default function HotelDetailImage({
 }) {
   const hotelMetaStore = useAppSelector((state) => state.bookSlice.hotelMeta);
   const meta = getHotelMeta(hotelMetaStore, hotelId, hotelName);
-  const src = meta.picture || fallbackSrc;
+  const rawSrc = meta.picture || fallbackSrc;
+  const src = isValidImageUrl(rawSrc) ? rawSrc : fallbackSrc;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element

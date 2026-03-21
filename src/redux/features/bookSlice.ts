@@ -1,44 +1,27 @@
 // ===========================================
 // src/redux/features/bookSlice.ts
-// Redux Slice — Bookings + Hotel Metadata
+// Redux Slice — Hotel Metadata (client-side overrides)
 //
-// เพิ่ม hotelMeta: เก็บ rating + description ของ hotel แต่ละแห่ง
-// - ไม่แตะ Backend เลย (Backend ไม่มี field rating/description)
-// - Admin ตั้งค่าผ่านหน้า Manage Hotels → เก็บใน Redux Persist
-// - Hotel card อ่านจาก hotelMeta ถ้ามี, ไม่มีใช้ default
+// hotelMeta เก็บ rating + description + picture สำหรับแต่ละโรงแรม
+// - Backend มี field rating/description/picture อยู่แล้ว
+// - Redux ใช้เป็น override/fallback เมื่อ API ไม่มีค่า หรือ admin ตั้งค่าท้องถิ่น
+// - เก็บใน Redux Persist (localStorage)
 // ===========================================
 
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// Booking item
-export interface ReduxBookingItem {
-  _id: string;
-  bookingDate: string;
-  numOfNights: number;
-  user: string;
-  hotel: {
-    _id: string;
-    name: string;
-    address: string;
-    tel: string;
-  };
-  createdAt: string;
-}
-
-// Hotel metadata (เก็บเฉพาะ frontend — ไม่มีใน Backend)
+// Hotel metadata (client-side override — อ่าน backend ก่อน ใช้ Redux เป็น fallback)
 export interface HotelMeta {
   rating: number;        // 1-5 ดาว
   description: string;   // ประเภท/คำอธิบายโรงแรม
-  picture?: string;      // base64 DataURL หรือ URL รูปภาพ (ไม่ส่งไป Backend)
+  picture?: string;      // base64 DataURL หรือ URL รูปภาพ (override รูปจาก backend)
 }
 
 type BookState = {
-  bookItems: ReduxBookingItem[];
   hotelMeta: { [hotelId: string]: HotelMeta }; // key = hotel._id
 };
 
 const initialState: BookState = {
-  bookItems: [],
   hotelMeta: {},
 };
 
@@ -46,25 +29,7 @@ export const bookSlice = createSlice({
   name: "book",
   initialState,
   reducers: {
-    // ----- Booking Actions -----
-    setBookings: (state, action: PayloadAction<ReduxBookingItem[]>) => {
-      state.bookItems = action.payload;
-    },
-    addBooking: (state, action: PayloadAction<ReduxBookingItem>) => {
-      state.bookItems.push(action.payload);
-    },
-    updateBooking: (state, action: PayloadAction<ReduxBookingItem>) => {
-      const index = state.bookItems.findIndex((item) => item._id === action.payload._id);
-      if (index >= 0) state.bookItems[index] = action.payload;
-    },
-    removeBooking: (state, action: PayloadAction<string>) => {
-      state.bookItems = state.bookItems.filter((item) => item._id !== action.payload);
-    },
-    clearBookings: (state) => {
-      state.bookItems = [];
-    },
-
-    // ----- Hotel Meta Actions (Frontend-only) -----
+    // ----- Hotel Meta Actions -----
     setHotelMeta: (
       state,
       action: PayloadAction<{ hotelId: string; meta: HotelMeta }>
@@ -80,11 +45,6 @@ export const bookSlice = createSlice({
 });
 
 export const {
-  setBookings,
-  addBooking,
-  updateBooking,
-  removeBooking,
-  clearBookings,
   setHotelMeta,
   removeHotelMeta,
 } = bookSlice.actions;
