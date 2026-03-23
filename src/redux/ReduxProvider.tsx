@@ -5,7 +5,6 @@
 // - PersistGate รอจนกว่าจะ rehydrate ข้อมูลจาก localStorage เสร็จ
 // - โครงสร้างเหมือนเว็บ Venue เดิมเป๊ะ (ReduxProvider.tsx)
 // ===========================================
-*delete*
 "use client";
 import { store } from "@/redux/store";
 import { Provider as ReactReduxProvider } from "react-redux";

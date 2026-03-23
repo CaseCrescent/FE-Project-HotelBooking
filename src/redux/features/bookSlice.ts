@@ -7,7 +7,6 @@
 // - Redux ใช้เป็น override/fallback เมื่อ API ไม่มีค่า หรือ admin ตั้งค่าท้องถิ่น
 // - เก็บใน Redux Persist (localStorage)
 // ===========================================
-*delete*
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 // Hotel metadata (client-side override — อ่าน backend ก่อน ใช้ Redux เป็น fallback)

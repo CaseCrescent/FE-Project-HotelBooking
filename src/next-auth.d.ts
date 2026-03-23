@@ -6,7 +6,6 @@
 // - token ที่ได้จาก Backend login จะถูกเก็บไว้ใน session
 //   เพื่อใช้ใน Authorization header ทุกครั้งที่เรียก API
 // ===========================================
-*delete*
 import NextAuth from "next-auth";
 
 declare module "next-auth" {
