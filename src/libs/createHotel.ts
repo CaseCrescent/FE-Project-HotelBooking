@@ -6,7 +6,6 @@
 // - optional fields จะถูก spread เข้า body เฉพาะเมื่อมีค่า (ไม่ส่ง key ที่ว่าง)
 // - ตรงกับ Backend controllers/hotels.js > exports.createHotel
 // ===========================================
-*delete*
 export default async function createHotel(
   token: string,
   name: string,

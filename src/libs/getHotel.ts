@@ -6,7 +6,6 @@
 // - ตรงกับ Backend controllers/hotels.js > exports.getHotel
 //   ที่ return { success, data: { _id, name, address, tel } }
 // ===========================================
-*delete*
 export default async function getHotel(id: string) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/hotels/${id}`,
