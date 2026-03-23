@@ -1,3 +1,12 @@
+// ===========================================
+// src/libs/createHotel.ts
+// POST /api/v1/hotels
+// - สร้าง hotel ใหม่ (ต้อง login เป็น admin — ส่ง Bearer token)
+// - ส่ง { name, address, tel } เป็น required, { picture, rating, description } เป็น optional
+// - optional fields จะถูก spread เข้า body เฉพาะเมื่อมีค่า (ไม่ส่ง key ที่ว่าง)
+// - ตรงกับ Backend controllers/hotels.js > exports.createHotel
+// ===========================================
+
 export default async function createHotel(
   token: string,
   name: string,

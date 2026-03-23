@@ -1,3 +1,12 @@
+// ===========================================
+// src/libs/updateHotel.ts
+// PUT /api/v1/hotels/:hotelId
+// - แก้ไขข้อมูล hotel (ต้อง login เป็น admin — ส่ง Bearer token)
+// - ส่ง { name, address, tel } เป็น required, { picture, rating, description } เป็น optional
+// - optional fields ใช้ !== undefined (ต่างจาก createHotel) เพื่อรองรับการ clear ค่าได้
+// - ตรงกับ Backend controllers/hotels.js > exports.updateHotel
+// ===========================================
+
 export default async function updateHotel(
   token: string,
   hotelId: string,
