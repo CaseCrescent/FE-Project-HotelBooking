@@ -34,7 +34,7 @@ export default async function HotelCatalog({
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 w-full max-w-[1100px] mx-auto px-4">
-        {hotelJsonReady.data.map((hotel: any) => (
+        {hotelJsonReady.data.map((hotel: any, index: number) => (
           <Link
             href={`/hotel/${hotel._id}`}
             key={hotel._id}
@@ -46,6 +46,7 @@ export default async function HotelCatalog({
               imgSrc={hotel.picture || undefined}
               hotelRating={hotel.rating ?? null}
               hotelDescription={hotel.description ?? null}
+              index={index}
             />
           </Link>
         ))}

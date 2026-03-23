@@ -9,7 +9,6 @@
 // ===========================================
 
 "use client";
-import Image from "next/image";
 import { useAppSelector } from "@/redux/store";
 import { getHotelMeta } from "@/redux/features/bookSlice";
 import StarRating from "@/components/StarRating";
@@ -21,18 +20,20 @@ export default function HotelCard({
   imgSrc,
   hotelRating,
   hotelDescription,
+  index = 0,
 }: {
   hotelId: string;
   hotelName: string;
   imgSrc?: string;
   hotelRating?: number | null;
   hotelDescription?: string | null;
+  index?: number;
 }) {
   const hotelMetaStore = useAppSelector((state) => state.bookSlice.hotelMeta);
   const meta = getHotelMeta(hotelMetaStore, hotelId, hotelName);
 
-  const defaultImages = ["/img/hotel.jpg", "/img/hotel2.jpg", "/img/hotel3.jpg"];
-  const imageIndex = hotelName.split("").reduce((sum, c) => sum + c.charCodeAt(0), 0) % defaultImages.length;
+  const defaultImages = ["/img/hotel.jpg", "/img/hotel2.jpg", "/img/hotel3.jpg", "/img/hotel4.jpg", "/img/hotel5.jpg", "/img/hotel6.jpg"];
+  const imageIndex = index % defaultImages.length;
 
   const rawImage = imgSrc || meta.picture;
   const displayImage = isValidImageUrl(rawImage) ? rawImage! : defaultImages[imageIndex];
@@ -52,12 +53,13 @@ export default function HotelCard({
             className="group-hover:scale-105 transition-transform duration-700"
           />
         ) : (
-          <Image
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
             src={displayImage}
             alt={hotelName}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-700"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = defaultImages[imageIndex]; }}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            className="group-hover:scale-105 transition-transform duration-700"
           />
         )}
       </div>
