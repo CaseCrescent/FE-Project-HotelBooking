@@ -4,7 +4,7 @@
 // - รองรับ: https/http URL, local path (/img/...), base64 DataURL
 // - ป้องกัน URL ที่ขาด :// หรือ domain ผิดรูป (เกิดจาก sanitizer bug เดิม)
 // ===========================================
-
+*delete*
 export function isValidImageUrl(url?: string | null): boolean {
   if (!url) return false;
   if (url.startsWith("data:")) return true;  // base64 DataURL

@@ -10,7 +10,7 @@
 //   - hotel ต้องมีอยู่จริง (404 ถ้าไม่มี)
 //   - numOfNights ต้อง ≤ 3 สำหรับ user (400 ถ้าเกิน)
 // ===========================================
-
+*delete*
 export default async function createBooking(
   token: string,
   hotelId: string,

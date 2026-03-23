@@ -11,7 +11,7 @@
 //   - ต้องเป็น owner หรือ admin (401 ถ้าไม่ใช่)
 //   - สำเร็จ → return { success: true, data: {} }
 // ===========================================
-
+*delete*
 export default async function deleteBooking(token: string, bookingId: string) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/bookings/${bookingId}`,

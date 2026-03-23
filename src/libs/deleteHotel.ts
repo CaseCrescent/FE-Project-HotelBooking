@@ -7,7 +7,7 @@
 // - ไฟล์ใหม่สำหรับ admin hotel management
 // - ตรงกับ Backend controllers/hotels.js > exports.deleteHotel
 // ===========================================
-
+*delete*
 export default async function deleteHotel(token: string, hotelId: string) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/hotels/${hotelId}`,

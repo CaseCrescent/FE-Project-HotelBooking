@@ -12,7 +12,7 @@
 //   - ต้องเป็น owner หรือ admin (401 ถ้าไม่ใช่)
 //   - numOfNights ต้อง ≤ 3 สำหรับ user (400 ถ้าเกิน)
 // ===========================================
-
+*delete*
 export default async function updateBooking(
   token: string,
   bookingId: string,

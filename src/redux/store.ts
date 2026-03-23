@@ -5,7 +5,7 @@
 // - SSR Safe: สร้าง custom storage ที่ทำงานได้ทั้ง server และ client
 // - โครงสร้างเดียวกับเว็บ Venue เดิม (store.ts)
 // ===========================================
-
+*delete*
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import bookSlice from "./features/bookSlice";
 import { useSelector, TypedUseSelectorHook } from "react-redux";

@@ -6,7 +6,7 @@
 // - โครงสร้างเดียวกับเว็บ Venue เดิม (getUserProfile.ts) แต่เปลี่ยน URL
 // - ตรงกับ Backend controllers/auth.js > exports.getMe
 // ===========================================
-
+*delete*
 export default async function getUserProfile(token: string) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/auth/me`,

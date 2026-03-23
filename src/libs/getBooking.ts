@@ -8,7 +8,7 @@
 //   ที่ return { success, data: { _id, bookingDate, numOfNights, user, hotel } }
 //   โดย populate hotel ให้ได้ { name, address, tel }
 // ===========================================
-
+*delete*
 export default async function getBooking(token: string, id: string) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/bookings/${id}`,
