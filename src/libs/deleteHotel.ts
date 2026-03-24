@@ -26,3 +26,4 @@ export default async function deleteHotel(token: string, hotelId: string) {
 
   return data;
 }
+// ===========================================

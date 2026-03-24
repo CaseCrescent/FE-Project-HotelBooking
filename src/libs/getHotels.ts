@@ -8,7 +8,7 @@
 // - ตรงกับ Backend controllers/hotels.js > exports.getHotels
 //   ที่ return { success, count, pagination, data }
 // ===========================================
-*delete*
+
 export default async function getHotels(page?: number, limit?: number) {
   // สร้าง query string สำหรับ pagination
   const params = new URLSearchParams();
