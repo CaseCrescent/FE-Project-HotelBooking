@@ -5,7 +5,7 @@
 // - ใช้ใน authOptions.ts ตอน NextAuth authorize
 // - โครงสร้างเดียวกับเว็บ Venue เดิม (userLogIn.ts) แต่เปลี่ยน URL
 // ===========================================
-*delete*
+
 export default async function userLogIn(email: string, password: string) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/auth/login`,
