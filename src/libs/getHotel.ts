@@ -20,3 +20,4 @@ export default async function getHotel(id: string) {
 
   return await response.json();
 }
+// ===========================================

@@ -31,7 +31,7 @@ export default async function createBooking(
     }
   );
 
-  // ดึง response body ไม่ว่าจะสำเร็จหรือไม่ เพื่อแสดง error message ได้
+  // ดึง response body ไม่ว่าจะสำเร็จหรือไม่ เพื่อแสดง error message ได้//
   const data = await response.json();
 
   if (!response.ok) {

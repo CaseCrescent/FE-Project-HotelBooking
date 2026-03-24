@@ -6,7 +6,7 @@
 // - /booking, /mybooking ต้อง login ก่อน
 // - ใช้ NextAuth getToken() เพื่อตรวจ session
 // ===========================================
-*delete*
+
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";

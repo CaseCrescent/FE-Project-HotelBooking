@@ -26,3 +26,4 @@ export default async function getBooking(token: string, id: string) {
 
   return await response.json();
 }
+// ===========================================

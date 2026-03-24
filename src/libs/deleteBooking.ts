@@ -30,3 +30,4 @@ export default async function deleteBooking(token: string, bookingId: string) {
 
   return data;
 }
+// ===========================================
