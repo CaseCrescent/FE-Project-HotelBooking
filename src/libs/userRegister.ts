@@ -6,7 +6,7 @@
 // - ตรงกับ Backend controllers/auth.js > exports.register
 //   ที่รับ {name, tel, email, password, role} ใน req.body
 // ===========================================
-*delete*
+
 export default async function userRegister(
   name: string,
   tel: string,
