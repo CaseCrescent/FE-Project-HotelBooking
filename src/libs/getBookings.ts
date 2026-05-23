@@ -9,6 +9,9 @@
 //   ที่ return { success, count, data: [...bookings] }
 //   โดย populate hotel ให้ได้ { name, address, tel }
 // ===========================================
+
+import { extractError } from "./extractError";
+
 export default async function getBookings(token: string) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/bookings`,
@@ -17,13 +20,12 @@ export default async function getBookings(token: string) {
       headers: {
         authorization: `Bearer ${token}`,
       },
-      // ไม่ cache เพื่อให้เห็นข้อมูลล่าสุดเสมอ
       cache: "no-store",
     }
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch bookings");
+    throw new Error(await extractError(response, "Could not load bookings"));
   }
 
   return await response.json();

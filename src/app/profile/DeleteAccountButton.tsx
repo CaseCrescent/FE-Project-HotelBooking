@@ -1,13 +1,7 @@
-// ===========================================
-// src/app/profile/DeleteAccountButton.tsx
-// Client Component — Delete Account + SignOut
-// - แสดงปุ่มสีแดง + confirmation dialog ก่อนลบ
-// - เรียก deleteAccountAction (Server Action) → สำเร็จ → signOut
-// ===========================================
-
 "use client";
 import { useState } from "react";
 import { signOut } from "next-auth/react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogTitle,
@@ -22,21 +16,20 @@ import { deleteAccountAction } from "@/app/actions";
 export default function DeleteAccountButton() {
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState("");
 
   const handleDelete = async () => {
     setDeleting(true);
-    setError("");
     try {
       const res = await deleteAccountAction();
       if (res.success) {
+        toast.success("Account deleted");
         await signOut({ callbackUrl: "/" });
       } else {
-        setError(res.message || "Failed to delete account. Please try again.");
+        toast.error(res.message || "Failed to delete account.");
         setDeleting(false);
       }
     } catch {
-      setError("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
       setDeleting(false);
     }
   };
@@ -45,17 +38,7 @@ export default function DeleteAccountButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="w-full transition-all duration-200 hover:-translate-y-0.5 hover:bg-red-500/20 hover:border-red-500/60 active:translate-y-0"
-        style={{
-          padding: "14px",
-          borderRadius: "12px",
-          border: "1px solid rgba(239,68,68,0.45)",
-          background: "rgba(239,68,68,0.12)",
-          color: "#f87171",
-          fontSize: "14px",
-          fontWeight: "600",
-          cursor: "pointer",
-        }}
+        className="w-full block text-center px-6 py-3.5 rounded-full border border-red-500/40 bg-red-500/[0.08] text-red-300 text-xs tracking-widest uppercase font-bold hover:bg-red-500/20 hover:border-red-500/70 transition-colors"
       >
         Delete Account
       </button>
@@ -76,27 +59,17 @@ export default function DeleteAccountButton() {
           },
         }}
       >
-        <DialogTitle sx={{ color: "#ef4444", fontWeight: "700" }}>
+        <DialogTitle sx={{ color: "#ef4444", fontWeight: 700 }}>
           Delete Account
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ color: "rgba(255,255,255,0.5)", lineHeight: 1.7 }}>
-            Are you sure you want to permanently delete your account?
-            All your bookings will be removed and{" "}
-            <strong style={{ color: "white" }}>this cannot be undone</strong>.
+          <DialogContentText sx={{ color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>
+            Are you sure you want to permanently delete your account? All your bookings will be removed
+            and <strong style={{ color: "white" }}>this cannot be undone</strong>.
           </DialogContentText>
-          {error && (
-            <p style={{ color: "#fca5a5", fontSize: "13px", marginTop: "12px" }}>
-              {error}
-            </p>
-          )}
         </DialogContent>
         <DialogActions sx={{ p: 2, gap: 1 }}>
-          <Button
-            onClick={() => setOpen(false)}
-            disabled={deleting}
-            sx={{ color: "rgba(255,255,255,0.3)", textTransform: "none" }}
-          >
+          <Button onClick={() => setOpen(false)} disabled={deleting} sx={{ color: "rgba(255,255,255,0.5)", textTransform: "none" }}>
             Cancel
           </Button>
           <Button
@@ -106,21 +79,23 @@ export default function DeleteAccountButton() {
             sx={{
               backgroundColor: "#ef4444",
               color: "white",
-              borderRadius: "8px",
+              borderRadius: "999px",
               px: 3,
-              textTransform: "none",
-              minWidth: "140px",
+              fontWeight: 700,
+              letterSpacing: 1.2,
+              textTransform: "uppercase",
+              minWidth: 140,
               "&:hover": { backgroundColor: "#dc2626" },
               "&:disabled": { backgroundColor: "#555" },
             }}
           >
             {deleting ? (
-              <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <CircularProgress size={16} sx={{ color: "white" }} />
-                Deleting...
+                Deleting…
               </span>
             ) : (
-              "Delete Account"
+              "Delete account"
             )}
           </Button>
         </DialogActions>

@@ -7,6 +7,7 @@
 // - Redux ใช้เป็น override/fallback เมื่อ API ไม่มีค่า หรือ admin ตั้งค่าท้องถิ่น
 // - เก็บใน Redux Persist (localStorage)
 // ===========================================
+
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 // Hotel metadata (client-side override — อ่าน backend ก่อน ใช้ Redux เป็น fallback)
@@ -14,6 +15,7 @@ export interface HotelMeta {
   rating: number;        // 1-5 ดาว
   description: string;   // ประเภท/คำอธิบายโรงแรม
   picture?: string;      // base64 DataURL หรือ URL รูปภาพ (override รูปจาก backend)
+  price?: number;        // ราคา/คืน (THB) — backend ยังไม่รองรับ field นี้ จึงเก็บ Redux only
 }
 
 type BookState = {

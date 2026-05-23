@@ -44,15 +44,18 @@ interface AdminHotelFormPanelProps {
   tel: string; setTel: (v: string) => void;
   picture: string; setPicture: (v: string) => void;
   rating: number; setRating: (v: number) => void;
+  price: number; setPrice: (v: number) => void;
   description: string; setDescription: (v: string) => void;
   submitting: boolean;
   onSubmit: () => void;
   onCancel: () => void;
 }
 
+const MAX_PRICE = 99999;
+
 export default function AdminHotelFormPanel({
   formMode, name, setName, address, setAddress, tel, setTel,
-  picture, setPicture, rating, setRating, description, setDescription,
+  picture, setPicture, rating, setRating, price, setPrice, description, setDescription,
   submitting, onSubmit, onCancel,
 }: AdminHotelFormPanelProps) {
   const [fileName, setFileName] = useState("");
@@ -81,13 +84,13 @@ export default function AdminHotelFormPanel({
   return (
     <div
       style={{
-        width: "400px",
-        minWidth: "300px",
+        width: "100%",
+        maxWidth: "420px",
         flexShrink: 0,
         position: "sticky",
-        top: "88px",
+        top: "80px",
         backgroundColor: "#1a1730",
-        border: "1px solid rgba(220,183,113,0.08)",
+        border: "1px solid rgba(220,183,113,0.18)",
         borderRadius: "16px",
         padding: "28px 24px",
         boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
@@ -253,6 +256,48 @@ export default function AdminHotelFormPanel({
               "& .MuiRating-iconEmpty": { color: "rgba(255,255,255,0.12)" },
             }}
           />
+        </Field>
+
+        {/* Price per Night — stored in Redux (backend has no price field) */}
+        <Field label="Price per Night (THB)">
+          <div style={{ position: "relative" }}>
+            <span
+              style={{
+                position: "absolute",
+                left: "12px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                color: "#dcb771",
+                fontSize: "14px",
+                fontWeight: 700,
+                pointerEvents: "none",
+              }}
+            >
+              ฿
+            </span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={MAX_PRICE}
+              step={50}
+              value={price === 0 ? "" : price}
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === "") return setPrice(0);
+                const n = Number(raw);
+                if (Number.isNaN(n) || n < 0) return setPrice(0);
+                setPrice(Math.min(Math.floor(n), MAX_PRICE));
+              }}
+              placeholder="Leave blank to use default"
+              style={{ ...inputStyle, paddingLeft: "28px" }}
+              onFocus={focusGold}
+              onBlur={blurGray}
+            />
+          </div>
+          <span style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", marginTop: "4px" }}>
+            Override the default price shown on hotel cards. Blank = use the auto-generated fallback.
+          </span>
         </Field>
 
         {/* Description */}

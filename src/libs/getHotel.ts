@@ -6,6 +6,9 @@
 // - ตรงกับ Backend controllers/hotels.js > exports.getHotel
 //   ที่ return { success, data: { _id, name, address, tel } }
 // ===========================================
+
+import { extractError } from "./extractError";
+
 export default async function getHotel(id: string) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/hotels/${id}`,
@@ -15,7 +18,7 @@ export default async function getHotel(id: string) {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch hotel");
+    throw new Error(await extractError(response, "Could not load hotel"));
   }
 
   return await response.json();

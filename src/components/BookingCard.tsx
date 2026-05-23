@@ -1,17 +1,8 @@
-// ===========================================
-// src/components/BookingCard.tsx
-// Single Booking Card (Client Component)
-// - แสดงข้อมูล booking 1 รายการ: ชื่อ hotel, วันที่, จำนวนคืน
-// - มีปุ่ม Edit (สีทอง) + Delete (สีแดง พร้อม confirm dialog)
-// - ดีไซน์อิงจากเว็บ Venue (BookingList.tsx) โดย:
-//   1. เพิ่มปุ่ม Edit (Venue มีแค่ Cancel)
-//   2. เพิ่ม confirmation dialog ก่อน delete (แก้จุดด้อย Venue)
-//   3. แสดง numOfNights (Venue ไม่มี)
-//   4. เรียก Server Action แทน Redux dispatch
-// ===========================================
-
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   Button,
   Dialog,
@@ -21,8 +12,18 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { deleteBookingAction } from "@/app/actions";
+import { cancelBookingAction, deleteBookingAction } from "@/app/actions";
 import dayjs from "dayjs";
+import StatusPill from "@/components/shared/StatusPill";
+import AdminBookingStatusControl from "@/components/admin/AdminBookingStatusControl";
+import { HOVER_LIFT } from "@/lib/animations";
+
+export interface BookedService {
+  service: string | { _id: string; name?: string };
+  name?: string;
+  price?: number;
+  quantity?: number;
+}
 
 export default function BookingCard({
   bookingId,
@@ -33,202 +34,306 @@ export default function BookingCard({
   isAdmin,
   userName,
   editPath,
+  status,
+  paymentStatus,
+  confirmationNumber,
+  roomServices,
 }: {
   bookingId: string;
   hotelName: string;
   hotelAddress?: string;
   bookingDate: string;
   numOfNights: number;
-  isAdmin?: boolean; // แสดงชื่อ user ด้วยถ้าเป็น admin
+  isAdmin?: boolean;
   userName?: string;
-  editPath: string; // path สำหรับหน้า edit (/mybooking/edit/[id] หรือ /admin/bookings/edit/[id])
+  editPath: string;
+  status?: string;
+  paymentStatus?: string;
+  confirmationNumber?: string;
+  roomServices?: BookedService[];
 }) {
   const router = useRouter();
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState("");
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  // Format วันที่ให้อ่านง่าย
   const formattedDate = dayjs(bookingDate).format("DD MMM YYYY");
-  const checkoutDate = dayjs(bookingDate)
-    .add(numOfNights, "day")
-    .format("DD MMM YYYY");
+  const checkoutDate = dayjs(bookingDate).add(numOfNights, "day").format("DD MMM YYYY");
 
-  // ===== Delete Handler =====
-  const handleDelete = async () => {
-    setDeleting(true);
-    setError("");
+  const isActive = !status || status === "confirmed" || status === "checked_in";
 
+  const handleCancel = async () => {
+    setBusy(true);
     try {
-      const result = await deleteBookingAction(bookingId);
-      if (result.success) {
-        setDeleteDialogOpen(false);
+      const r = await cancelBookingAction(bookingId);
+      if (r.success) {
+        toast.success("Booking cancelled");
+        setCancelOpen(false);
         router.refresh();
       } else {
-        setError(result.message || "Failed to delete booking.");
+        toast.error(r.message || "Failed to cancel.");
       }
-    } catch (err: any) {
-      setError(err.message || "Something went wrong.");
     } finally {
-      setDeleting(false);
+      setBusy(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setBusy(true);
+    try {
+      const r = await deleteBookingAction(bookingId);
+      if (r.success) {
+        toast.success("Booking removed");
+        setDeleteOpen(false);
+        router.refresh();
+      } else {
+        toast.error(r.message || "Failed to delete.");
+      }
+    } finally {
+      setBusy(false);
     }
   };
 
   return (
     <>
-      {/* ===== Booking Card ===== */}
-      {/* ดีไซน์เหมือน booking card ของเว็บ Venue (กล่อง #1a1730 + gradient border) */}
-      <div
-        className="p-6 rounded-2xl flex flex-col gap-4 animate-fade-in"
-        style={{
-          backgroundColor: "#1a1730",
-          boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.5)",
-          border: "1px solid rgba(220, 183, 113, 0.1)",
-        }}
+      <motion.div
+        whileHover={{ y: -4 }}
+        transition={HOVER_LIFT}
+        className="glass-card p-6 flex flex-col gap-4"
       >
-        {/* ===== Header: Hotel name ===== */}
-        <div
-          className="pb-3 mb-1"
-          style={{ borderBottom: "1px solid #333" }}
-        >
-          <h2 className="text-[#dcb771] text-xl font-bold text-center">
-            {hotelName}
-          </h2>
-          {hotelAddress && (
-            <p className="text-[#9ca3af] text-xs text-center mt-1">
-              {hotelAddress}
-            </p>
-          )}
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 pb-3 border-b border-white/[0.06]">
+          <div className="min-w-0">
+            <h2 className="text-gold text-lg font-bold truncate">{hotelName}</h2>
+            {hotelAddress && <p className="text-white/45 text-xs mt-0.5 truncate">{hotelAddress}</p>}
+            {confirmationNumber && (
+              <p className="text-white/30 text-[10px] mt-1 tracking-widest uppercase">{confirmationNumber}</p>
+            )}
+          </div>
+          <div className="flex flex-col items-end gap-1.5">
+            <StatusPill status={status} />
+            {paymentStatus === "paid" ? (
+              <span className="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-sm uppercase tracking-widest border border-emerald-200">Paid</span>
+            ) : paymentStatus === "pending" ? (
+              <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-sm uppercase tracking-widest border border-amber-200">Payment Pending</span>
+            ) : null}
+          </div>
         </div>
 
-        {/* ===== Booking Details ===== */}
-        <div className="flex flex-col gap-3">
-          {/* ถ้าเป็น admin → แสดงชื่อ user ที่จอง */}
+        {/* Body */}
+        <div className="flex flex-col gap-2">
           {isAdmin && userName && (
-            <div className="flex justify-between items-center">
-              <span className="text-[#9ca3af] text-sm">Booked by</span>
-              <span className="text-white text-sm font-medium">
-                {userName}
-              </span>
+            <Row label="Booked by" value={userName} />
+          )}
+          <Row label="Check-in" value={formattedDate} />
+          <Row label="Check-out" value={checkoutDate} />
+          <Row label="Nights" value={`${numOfNights} ${numOfNights === 1 ? "Night" : "Nights"}`} highlight />
+          {roomServices && roomServices.length > 0 && (
+            <div className="mt-1 pt-2 border-t border-white/[0.05]">
+              <div className="text-white/45 text-[10px] uppercase tracking-widest mb-1">Add-ons</div>
+              <ul className="flex flex-col gap-0.5">
+                {roomServices.map((s, i) => {
+                  const name = s.name || (typeof s.service === "object" ? s.service?.name : null) || "Service";
+                  const qty = s.quantity ?? 1;
+                  const price = s.price ?? 0;
+                  return (
+                    <li key={i} className="flex justify-between text-xs text-white/70">
+                      <span className="truncate">{name} × {qty}</span>
+                      <span className="tabular-nums text-gold-light flex-shrink-0 ml-2">
+                        {price === 0 ? "Included" : `฿${(price * qty).toLocaleString()}`}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           )}
-
-          <div className="flex justify-between items-center">
-            <span className="text-[#9ca3af] text-sm">Check-in</span>
-            <span className="text-white text-sm">{formattedDate}</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-[#9ca3af] text-sm">Check-out</span>
-            <span className="text-white text-sm">{checkoutDate}</span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-[#9ca3af] text-sm">Nights</span>
-            <span className="text-[#dcb771] text-sm font-bold">
-              {numOfNights} {numOfNights === 1 ? "Night" : "Nights"}
-            </span>
-          </div>
         </div>
 
-        {/* ===== Error Message ===== */}
-        {error && (
-          <p className="text-red-400 text-sm text-center">{error}</p>
+        {/* Actions */}
+        <div className="flex flex-wrap gap-2 mt-2">
+          <Link
+            href={`/booking/${bookingId}`}
+            className="flex-1 min-w-[120px] text-center px-4 py-2.5 rounded-lg border border-white/15 text-white/85 text-xs uppercase tracking-widest font-semibold hover:bg-white/[0.05]"
+          >
+            View ticket
+          </Link>
+
+          {isActive && (
+            <>
+              <Button
+                variant="outlined"
+                onClick={() => router.push(editPath)}
+                sx={{
+                  flex: 1,
+                  minWidth: 100,
+                  color: "#dcb771",
+                  borderColor: "rgba(220,183,113,0.5)",
+                  fontWeight: 700,
+                  borderRadius: "8px",
+                  textTransform: "uppercase",
+                  letterSpacing: 1.2,
+                  fontSize: 11,
+                  "&:hover": { backgroundColor: "rgba(220,183,113,0.1)", borderColor: "#dcb771" },
+                }}
+              >
+                Edit
+              </Button>
+
+              <Button
+                variant="outlined"
+                onClick={() => setCancelOpen(true)}
+                sx={{
+                  flex: 1,
+                  minWidth: 100,
+                  color: "#fca5a5",
+                  borderColor: "rgba(239,68,68,0.4)",
+                  fontWeight: 700,
+                  borderRadius: "8px",
+                  textTransform: "uppercase",
+                  letterSpacing: 1.2,
+                  fontSize: 11,
+                  "&:hover": { backgroundColor: "rgba(239,68,68,0.08)", borderColor: "#ef4444" },
+                }}
+              >
+                Cancel
+              </Button>
+            </>
+          )}
+
+          {isAdmin && (
+            <Button
+              variant="outlined"
+              onClick={() => setDeleteOpen(true)}
+              sx={{
+                flex: 1,
+                minWidth: 100,
+                color: "#ef4444",
+                borderColor: "rgba(239,68,68,0.6)",
+                fontWeight: 700,
+                borderRadius: "8px",
+                textTransform: "uppercase",
+                letterSpacing: 1.2,
+                fontSize: 11,
+                "&:hover": { backgroundColor: "#ef4444", color: "white", borderColor: "#ef4444" },
+              }}
+            >
+              Delete
+            </Button>
+          )}
+        </div>
+
+        {/* Admin lifecycle control — inline status transitions */}
+        {isAdmin && status && status !== "cancelled" && status !== "completed" && (
+          <AdminBookingStatusControl bookingId={bookingId} status={status} />
         )}
+      </motion.div>
 
-        {/* ===== Action Buttons (Edit + Delete) ===== */}
-        <div className="flex gap-3 mt-2">
-          {/* Edit Button (สีทอง — ใหม่ ไม่มีในเว็บ Venue) */}
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={() => router.push(editPath)}
-            sx={{
-              color: "#dcb771",
-              borderColor: "#dcb771",
-              fontWeight: "bold",
-              borderRadius: "8px",
-              padding: "10px 0",
-              "&:hover": {
-                backgroundColor: "#dcb771",
-                color: "#1a1730",
-                borderColor: "#dcb771",
-              },
-            }}
-          >
-            Edit
-          </Button>
+      {/* Cancel confirm */}
+      <ConfirmDialog
+        open={cancelOpen}
+        title="Cancel this booking?"
+        body={
+          <>
+            Cancel your booking at <strong style={{ color: "#dcb771" }}>{hotelName}</strong> on {formattedDate}?
+            Your booking will be kept on file as cancelled.
+          </>
+        }
+        confirmLabel={busy ? "Cancelling…" : "Cancel booking"}
+        confirmColor="#fca5a5"
+        onClose={() => setCancelOpen(false)}
+        onConfirm={handleCancel}
+        busy={busy}
+      />
 
-          {/* Delete Button (สีแดง — เหมือน Cancel ของเว็บ Venue แต่เพิ่ม confirm) */}
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={() => setDeleteDialogOpen(true)}
-            sx={{
-              color: "#ef4444",
-              borderColor: "#ef4444",
-              fontWeight: "bold",
-              borderRadius: "8px",
-              padding: "10px 0",
-              "&:hover": {
-                backgroundColor: "#ef4444",
-                color: "white",
-                borderColor: "#ef4444",
-              },
-            }}
-          >
-            Delete
-          </Button>
-        </div>
-      </div>
-
-      {/* ===== Confirmation Dialog (แก้จุดด้อย Venue ที่ลบทันทีไม่ถาม) ===== */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
-        slotProps={{
-          paper: {
-            sx: {
-              backgroundColor: "#1a1730",
-              color: "white",
-              borderRadius: "16px",
-              border: "1px solid #333",
-            },
-          },
-        }}
-      >
-        <DialogTitle sx={{ color: "#dcb771" }}>Confirm Delete</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ color: "#9ca3af" }}>
-            Are you sure you want to delete your booking at{" "}
-            <strong style={{ color: "#dcb771" }}>{hotelName}</strong> on{" "}
-            {formattedDate}? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions sx={{ padding: "16px" }}>
-          <Button
-            onClick={() => setDeleteDialogOpen(false)}
-            sx={{ color: "#9ca3af" }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDelete}
-            disabled={deleting}
-            sx={{
-              backgroundColor: "#ef4444",
-              color: "white",
-              "&:hover": { backgroundColor: "#dc2626" },
-              "&:disabled": { backgroundColor: "#555" },
-              borderRadius: "8px",
-              padding: "6px 20px",
-            }}
-            variant="contained"
-          >
-            {deleting ? "Deleting..." : "Delete"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Delete confirm (admin) */}
+      <ConfirmDialog
+        open={deleteOpen}
+        title="Delete this booking?"
+        body={
+          <>
+            Permanently delete the booking at <strong style={{ color: "#dcb771" }}>{hotelName}</strong> on {formattedDate}?
+            This cannot be undone.
+          </>
+        }
+        confirmLabel={busy ? "Deleting…" : "Delete"}
+        confirmColor="#ef4444"
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+        busy={busy}
+      />
     </>
+  );
+}
+
+function Row({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  return (
+    <div className="flex justify-between items-center">
+      <span className="text-white/45 text-xs uppercase tracking-widest">{label}</span>
+      <span className={`text-sm ${highlight ? "text-gold-light font-bold" : "text-white/85"}`}>{value}</span>
+    </div>
+  );
+}
+
+function ConfirmDialog({
+  open,
+  title,
+  body,
+  confirmLabel,
+  confirmColor,
+  onClose,
+  onConfirm,
+  busy,
+}: {
+  open: boolean;
+  title: string;
+  body: React.ReactNode;
+  confirmLabel: string;
+  confirmColor: string;
+  onClose: () => void;
+  onConfirm: () => void;
+  busy: boolean;
+}) {
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      slotProps={{
+        paper: {
+          sx: {
+            backgroundColor: "#1a1730",
+            color: "white",
+            borderRadius: "16px",
+            border: "1px solid rgba(220,183,113,0.18)",
+            backdropFilter: "blur(12px)",
+          },
+        },
+      }}
+    >
+      <DialogTitle sx={{ color: "#dcb771", fontWeight: 700 }}>{title}</DialogTitle>
+      <DialogContent>
+        <DialogContentText sx={{ color: "#9ca3af" }}>{body}</DialogContentText>
+      </DialogContent>
+      <DialogActions sx={{ padding: "16px" }}>
+        <Button onClick={onClose} sx={{ color: "#9ca3af" }}>Cancel</Button>
+        <Button
+          onClick={onConfirm}
+          disabled={busy}
+          sx={{
+            backgroundColor: confirmColor,
+            color: "white",
+            "&:hover": { backgroundColor: confirmColor, filter: "brightness(0.9)" },
+            "&:disabled": { backgroundColor: "#555" },
+            borderRadius: "8px",
+            padding: "6px 20px",
+            fontWeight: 700,
+            letterSpacing: 1.1,
+          }}
+          variant="contained"
+        >
+          {confirmLabel}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }

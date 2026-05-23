@@ -9,6 +9,8 @@
 //   ที่ return { success, count, pagination, data }
 // ===========================================
 
+import { extractError } from "./extractError";
+
 export default async function getHotels(page?: number, limit?: number) {
   // สร้าง query string สำหรับ pagination
   const params = new URLSearchParams();
@@ -26,7 +28,7 @@ export default async function getHotels(page?: number, limit?: number) {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch hotels");
+    throw new Error(await extractError(response, "Could not load hotels"));
   }
 
   return await response.json();

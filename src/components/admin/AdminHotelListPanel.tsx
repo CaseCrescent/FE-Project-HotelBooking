@@ -74,10 +74,10 @@ export default function AdminHotelListPanel({
                   flexDirection: "row",
                   alignItems: "center",
                   gap: "16px",
-                  padding: "16px 20px",
+                  padding: "20px 24px",
                   borderRadius: "16px",
                   backgroundColor: "#1a1730",
-                  border: "1px solid rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.06)",
                   transition: "border-color 0.2s",
                 }}
               >
@@ -111,10 +111,10 @@ export default function AdminHotelListPanel({
                 <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
                   <button
                     onClick={() => onEdit(hotel)}
-                    className="px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:opacity-80"
+                    className="px-4 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 hover:border-[#dcb771]/60 hover:bg-[rgba(220,183,113,0.1)]"
                     style={{
                       color: "#dcb771",
-                      border: "1px solid rgba(220,183,113,0.2)",
+                      border: "1px solid rgba(220,183,113,0.3)",
                       backgroundColor: "rgba(220,183,113,0.05)",
                     }}
                   >
@@ -122,10 +122,10 @@ export default function AdminHotelListPanel({
                   </button>
                   <button
                     onClick={() => onDeleteRequest(hotel)}
-                    className="px-4 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:opacity-80"
+                    className="px-4 py-1.5 rounded-lg text-xs font-medium transition-colors duration-200 hover:border-red-500/60 hover:bg-red-500/10"
                     style={{
                       color: "#ef4444",
-                      border: "1px solid rgba(239,68,68,0.2)",
+                      border: "1px solid rgba(239,68,68,0.3)",
                       backgroundColor: "rgba(239,68,68,0.05)",
                     }}
                   >

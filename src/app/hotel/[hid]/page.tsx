@@ -1,15 +1,14 @@
-// ===========================================
-// src/app/hotel/[hid]/page.tsx
-// Hotel Detail Page — แสดงรายละเอียด + ดาว + description + ปุ่ม Book
-// Server Component — ไม่มี onMouseOver (ใช้ Tailwind hover)
-// ⚠️ ใช้ inline style สำหรับ paddingTop + bg เพราะ Tailwind v4 JIT
-//    ไม่ generate CSS สำหรับ class ใหม่ที่ยังไม่เคย build ไว้ก่อน
-// ===========================================
-
-import getHotel from "@/libs/getHotel";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
+import getHotel from "@/libs/getHotel";
+import getReviews from "@/libs/getReviews";
 import HotelDetailClient from "./HotelDetailClient";
-import HotelDetailImage from "./HotelDetailImage";
+import AvailabilityStrip from "@/components/hotel/AvailabilityStrip";
+import HotelMap from "@/components/hotel/HotelMap";
+import ReviewList from "@/components/reviews/ReviewList";
+import ReviewForm from "@/components/reviews/ReviewForm";
+import RevealSection from "@/components/motion/RevealSection";
 import { isValidImageUrl } from "@/libs/isValidImageUrl";
 
 export default async function HotelDetailPage({
@@ -18,141 +17,189 @@ export default async function HotelDetailPage({
   params: Promise<{ hid: string }>;
 }) {
   const { hid } = await params;
-  const hotelDetail = await getHotel(hid);
+  const [hotelDetail, reviewsRes, session] = await Promise.all([
+    getHotel(hid),
+    getReviews(hid).catch(() => ({ success: false, count: 0, data: [] })),
+    getServerSession(authOptions),
+  ]);
   const hotel = hotelDetail.data;
+  const reviews = reviewsRes?.data ?? [];
+  const currentUserId = session?.user?._id;
+  const isAdmin = session?.user?.role === "admin";
+  const isLoggedIn = !!session?.user?.token;
+  const ownReview = currentUserId
+    ? reviews.find((r) => {
+        const uid = typeof r.user === "object" && r.user ? r.user._id : r.user;
+        return uid === currentUserId;
+      })
+    : undefined;
 
   if (!hotel) {
     return (
-      <main style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#0d0b1a" }}>
-        <h1 style={{ color: "white", fontSize: "20px" }}>Hotel not found</h1>
+      <main className="min-h-[calc(100vh-64px)] flex items-center justify-center px-6">
+        <div className="glass-card-gold p-10 text-center max-w-md">
+          <h1 className="text-white text-xl font-bold">Hotel not found</h1>
+          <Link href="/hotel" className="inline-block mt-4 text-gold hover:text-[#f5d78e] text-sm">
+            ← Back to all hotels
+          </Link>
+        </div>
       </main>
     );
   }
 
-  // รูปภาพ fallback deterministic จากชื่อโรงแรม
   const defaults = ["/img/hotel.jpg", "/img/hotel2.jpg", "/img/hotel3.jpg"];
-  const idx = hotel.name.split("").reduce((s: number, c: string) => s + c.charCodeAt(0), 0) % defaults.length;
-  const imgSrc = isValidImageUrl(hotel.picture) ? hotel.picture! : defaults[idx];
+  const idx =
+    hotel.name.split("").reduce((s: number, c: string) => s + c.charCodeAt(0), 0) % defaults.length;
+  const heroImg = isValidImageUrl(hotel.picture) ? hotel.picture! : defaults[idx];
 
   return (
-    // ⚠️ ใช้ inline style แทน Tailwind pt-24 เพราะ JIT อาจไม่ generate class ใหม่
-    // ธีมตรงกับ booking page: bg #0d0b1a, paddingTop 120px, centered content
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#0d0b1a",
-        paddingTop: "120px",
-        paddingBottom: "64px",
-        paddingLeft: "16px",
-        paddingRight: "16px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-      }}
-    >
-      {/* ชื่อโรงแรม — gold heading เหมือน booking page */}
-      <h1
-        style={{
-          color: "#dcb771",
-          fontSize: "clamp(24px, 4vw, 36px)",
-          fontWeight: "700",
-          marginBottom: "32px",
-          textAlign: "center",
-          letterSpacing: "0.5px",
-        }}
-      >
-        {hotel.name}
-      </h1>
-
-      {/* Card หลัก — ธีมเดียวกับ BookingForm cards */}
-      {/* ⚠️ ใช้ flexDirection row เสมอ (desktop-first) เพราะ Tailwind responsive JIT อาจไม่ generate */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "860px",
-          backgroundColor: "#1a1730",
-          borderRadius: "16px",
-          border: "1px solid rgba(220, 183, 113, 0.08)",
-          boxShadow: "0 16px 48px rgba(0, 0, 0, 0.5)",
-          display: "flex",
-          flexDirection: "row",
-          overflow: "hidden",
-        }}
-      >
-        {/* ===== ฝั่งซ้าย: รูปภาพ ===== */}
+    <main className="min-h-[calc(100vh-64px)] pb-20 md:pb-28">
+      {/* Hero banner */}
+      <section className="relative w-full h-[42vh] min-h-[300px] max-h-[480px] overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={heroImg} alt={hotel.name} className="absolute inset-0 w-full h-full object-cover" />
         <div
-          style={{ width: "360px", minHeight: "300px", position: "relative", flexShrink: 0, overflow: "hidden" }}
-        >
-          <HotelDetailImage hotelId={hotel._id} hotelName={hotel.name} fallbackSrc={imgSrc} />
-        </div>
-
-        {/* ===== ฝั่งขวา: รายละเอียด ===== */}
-        <div
+          className="absolute inset-0"
           style={{
-            flex: 1,
-            padding: "32px",
-            display: "flex",
-            flexDirection: "column",
-            gap: "20px",
-            minWidth: 0,
+            background: "linear-gradient(180deg, rgba(12,10,22,0.35) 0%, rgba(12,10,22,0.95) 100%)",
           }}
-        >
-          {/* Stars + Description — backend เป็น primary, Redux เป็น fallback */}
-          <HotelDetailClient
-            hotelId={hotel._id}
-            hotelName={hotel.name}
-            apiRating={hotel.rating}
-            apiDescription={hotel.description}
-          />
-
-          {/* Info rows */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <InfoRow label="Name" value={hotel.name} />
-            <InfoRow label="Address" value={hotel.address} />
-            <InfoRow label="Telephone" value={hotel.tel} />
-          </div>
-
-          {/* ปุ่ม Book This Hotel — สีเข้มบน gold เพื่อ contrast */}
+        />
+        <div className="relative z-10 max-w-[1200px] mx-auto h-full px-6 md:px-10 lg:px-12 flex flex-col justify-end pb-10">
           <Link
-            href={`/booking?hotel=${hotel._id}`}
-            style={{
-              marginTop: "auto",
-              display: "block",
-              width: "100%",
-              textAlign: "center",
-              padding: "14px",
-              borderRadius: "12px",
-              fontWeight: "700",
-              fontSize: "15px",
-              letterSpacing: "0.4px",
-              background: "linear-gradient(135deg, #dcb771 0%, #c5a059 100%)",
-              color: "#12102a", // ✅ ตัวหนังสือสีเข้ม contrast กับพื้น gold
-              textDecoration: "none",
-              transition: "all 0.3s ease",
-              boxShadow: "0 4px 20px rgba(220,183,113,0.25)",
-            }}
-            className="hover:-translate-y-0.5 hover:shadow-[0_8px_28px_rgba(220,183,113,0.4)]"
+            href="/hotel"
+            className="text-white/55 hover:text-white text-xs tracking-widest uppercase mb-3"
           >
-            Book This Hotel
+            ← All hotels
           </Link>
+          <div className="text-[11px] tracking-[0.32em] uppercase text-gold mb-2">Partner hotel</div>
+          <h1 className="text-white font-bold leading-tight tracking-tight text-3xl md:text-5xl lg:text-6xl">
+            {hotel.name}
+          </h1>
+          <p className="mt-2 text-white/70 text-sm md:text-base max-w-2xl">{hotel.address}</p>
         </div>
-      </div>
+      </section>
+
+      {/* Body */}
+      <section className="max-w-[1200px] mx-auto px-6 md:px-10 lg:px-12 mt-10 md:mt-14 grid lg:grid-cols-[1fr_360px] gap-8 lg:gap-10">
+        {/* Main column */}
+        <div className="flex flex-col gap-6 lg:gap-8 min-w-0">
+          <RevealSection as="div" className="glass-card p-6 md:p-8">
+            <div className="text-[11px] tracking-[0.32em] uppercase text-gold mb-3">About</div>
+            <HotelDetailClient
+              hotelId={hotel._id}
+              hotelName={hotel.name}
+              apiRating={hotel.rating}
+              apiDescription={hotel.description}
+            />
+            <p className="mt-4 text-white/70 text-base leading-relaxed">
+              {hotel.description ||
+                "A curated partner property. Real-time availability shown below — pick a date and proceed to the booking wizard to confirm."}
+            </p>
+          </RevealSection>
+
+          <RevealSection as="div" className="glass-card p-6 md:p-8">
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <h2 className="text-white font-bold text-lg md:text-xl">Availability — next 10 days</h2>
+              <span className="text-[11px] uppercase tracking-widest text-white/40">
+                Live · updates every 25s
+              </span>
+            </div>
+            <AvailabilityStrip hotelId={hotel._id} />
+            <p className="mt-4 text-white/40 text-xs">
+              Green = open · Amber = scarce · Red = fully booked
+            </p>
+          </RevealSection>
+
+          <RevealSection as="div">
+            <HotelMap address={hotel.address} name={hotel.name} />
+          </RevealSection>
+
+          {/* Reviews */}
+          <RevealSection className="flex flex-col gap-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <div className="text-[11px] tracking-[0.32em] uppercase text-gold mb-1">Guest reviews</div>
+                <h2 className="text-white font-bold text-lg md:text-xl">
+                  {reviews.length > 0
+                    ? `${reviews.length} ${reviews.length === 1 ? "review" : "reviews"}`
+                    : "No reviews yet"}
+                </h2>
+              </div>
+              {hotel.rating != null && (
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#dcb771]/12 border border-[#dcb771]/30">
+                  <span className="text-[#f5d78e] text-base leading-none">★</span>
+                  <span className="text-white font-bold tabular-nums">{Number(hotel.rating).toFixed(1)}</span>
+                  <span className="text-white/50 text-[11px] uppercase tracking-widest">avg</span>
+                </div>
+              )}
+            </div>
+
+            {isLoggedIn ? (
+              <ReviewForm
+                hotelId={hotel._id}
+                existing={
+                  ownReview
+                    ? { _id: ownReview._id, score: ownReview.score, comment: ownReview.comment }
+                    : null
+                }
+              />
+            ) : (
+              <div className="glass-card p-5 text-center">
+                <p className="text-white/55 text-sm">
+                  <Link href={`/login?callbackUrl=/hotel/${hotel._id}`} className="text-gold hover:text-[#f5d78e]">
+                    Sign in
+                  </Link>{" "}
+                  to leave a review.
+                </p>
+              </div>
+            )}
+
+            <ReviewList
+              reviews={reviews}
+              currentUserId={currentUserId}
+              isAdmin={isAdmin}
+              isLoggedIn={isLoggedIn}
+            />
+          </RevealSection>
+        </div>
+
+        {/* Sticky booking aside */}
+        <aside className="lg:sticky lg:top-[80px] self-start">
+          <div className="glass-card-gold p-6 md:p-7">
+            <div className="text-[11px] tracking-[0.32em] uppercase text-gold mb-3">Book this hotel</div>
+            <p className="text-white/70 text-sm mb-6 leading-relaxed">
+              Reserve up to 3 nights. Cancel any time. Confirmation receipt issued instantly.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <InfoChip label="Telephone" value={hotel.tel} />
+              <InfoChip label="Address" value={hotel.address} />
+            </div>
+
+            <Link
+              href={`/booking?hotel=${hotel._id}`}
+              className="block w-full text-center px-6 py-4 rounded-full gradient-gold text-[#1a1730] font-bold tracking-widest text-xs uppercase shadow-elegant hover:-translate-y-0.5 transition-transform"
+            >
+              Continue to booking
+            </Link>
+            <Link
+              href="/hotel"
+              className="mt-3 block w-full text-center px-6 py-3 rounded-full border border-white/15 text-white/80 text-xs tracking-widest uppercase font-semibold hover:bg-white/[0.04] transition-colors"
+            >
+              Browse other hotels
+            </Link>
+          </div>
+        </aside>
+      </section>
     </main>
   );
 }
 
-// ===========================================
-// Helper: label + value row
-// ===========================================
-function InfoRow({ label, value }: { label: string; value: string }) {
+function InfoChip({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px" }}>
-        {label}
-      </span>
-      <p style={{ color: "rgba(255,255,255,0.9)", fontSize: "14px", marginTop: "2px" }}>
-        {value}
-      </p>
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 min-w-0">
+      <div className="text-[10px] uppercase tracking-widest text-white/40 mb-1">{label}</div>
+      <div className="text-white/90 text-xs truncate">{value}</div>
     </div>
   );
 }

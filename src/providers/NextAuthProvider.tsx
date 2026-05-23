@@ -5,6 +5,7 @@
 // - ให้ทุก component ใช้ useSession() ได้
 // - โครงสร้างเหมือนเว็บ Venue เดิมเป๊ะ (NextAuthProvider.tsx)
 // ===========================================
+
 "use client";
 import { SessionProvider } from "next-auth/react";
 

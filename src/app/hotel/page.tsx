@@ -1,71 +1,33 @@
-// ===========================================
-// src/app/hotel/page.tsx
-// Step 3: Hotels Listing
-// - แสดงรายการโรงแรมทั้งหมด (public — ทุกคนเห็นได้)
-// - ใช้ <Suspense> ครอบ HotelCatalog เพื่อแสดง loading
-// - โครงสร้างเดียวกับเว็บ Venue เดิม (venue/page.tsx)
-//   แต่เปลี่ยนจาก getVenues → getHotels
-// - Presentation Journey Step 3 (1 คะแนน)
-// ===========================================
-
+import { Suspense } from "react";
 import HotelCatalog from "@/components/HotelCatalog";
 import getHotels from "@/libs/getHotels";
-import { Suspense } from "react";
-import { LinearProgress } from "@mui/material";
+import { SkeletonHotelGrid } from "@/components/shared/Skeletons";
+import PageShell, { PageHeader } from "@/components/layout/PageShell";
+
+export const metadata = {
+  title: "Hotels · Hotel Booking",
+  description: "Browse handpicked partner hotels with real-time availability.",
+};
 
 export default function HotelPage() {
-  // ดึงข้อมูล API แบบ Server-Side (ได้ออกมาเป็น Promise — เหมือนเว็บ Venue)
-  // ไม่ส่ง limit เพื่อแสดงจำนวนตามความเหมาะสม (Backend default = 25)
   const hotels = getHotels();
-
   return (
-    <main
-      style={{
-        paddingTop: "60px",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        paddingBottom: "60px",
-      }}
-    >
-      {/* หัวข้อ — สีทองเหมือนเว็บ Venue */}
-      <h1
-        style={{
-          color: "#dcb771",
-          fontSize: "36px",
-          fontWeight: "bold",
-          marginBottom: "8px",
-        }}
-      >
-        Our Hotels
-      </h1>
-
-      {/* Suspense wrapper — แสดง loading ขณะรอ API (เหมือน Venue) */}
-      <Suspense
-        fallback={
-          <div
-            style={{
-              color: "white",
-              marginTop: "40px",
-              width: "600px",
-              textAlign: "center",
-            }}
-          >
-            <p style={{ marginBottom: "15px", fontSize: "18px" }}>
-              Loading Hotels...
-            </p>
-            <LinearProgress
-              sx={{
-                backgroundColor: "#555",
-                "& .MuiLinearProgress-bar": { backgroundColor: "#dcb771" },
-              }}
-            />
-          </div>
+    <PageShell wide>
+      <PageHeader
+        eyebrow="Our Catalogue"
+        title={
+          <>
+            Every hotel.{" "}
+            <span className="bg-gradient-to-r from-[#f5d78e] via-[#dcb771] to-[#c5a059] bg-clip-text text-transparent">
+              One booking.
+            </span>
+          </>
         }
-      >
+        description="Click a hotel to view rooms, check live availability, and reserve in under a minute."
+      />
+      <Suspense fallback={<SkeletonHotelGrid count={6} />}>
         <HotelCatalog hotelsJson={hotels} />
       </Suspense>
-    </main>
+    </PageShell>
   );
 }

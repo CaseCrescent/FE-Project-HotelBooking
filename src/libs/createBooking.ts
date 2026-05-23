@@ -10,11 +10,18 @@
 //   - hotel ต้องมีอยู่จริง (404 ถ้าไม่มี)
 //   - numOfNights ต้อง ≤ 3 สำหรับ user (400 ถ้าเกิน)
 // ===========================================
+
+export interface BookingServiceSelection {
+  service: string;
+  quantity: number;
+}
+
 export default async function createBooking(
   token: string,
   hotelId: string,
   bookingDate: string,
-  numOfNights: number
+  numOfNights: number,
+  roomServices: BookingServiceSelection[] = []
 ) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/hotels/${hotelId}/bookings`,
@@ -27,16 +34,15 @@ export default async function createBooking(
       body: JSON.stringify({
         bookingDate,
         numOfNights,
+        roomServices,
       }),
     }
   );
 
-  // ดึง response body ไม่ว่าจะสำเร็จหรือไม่ เพื่อแสดง error message ได้//
+  // ดึง response body ไม่ว่าจะสำเร็จหรือไม่ เพื่อแสดง error message ได้
   const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(data.message || "Failed to create booking");
+    throw new Error(data.message || data.error || "Could not create booking");
   }
-
   return data;
 }

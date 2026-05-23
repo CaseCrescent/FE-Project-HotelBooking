@@ -8,6 +8,9 @@
 //   ที่ return { success, data: { _id, bookingDate, numOfNights, user, hotel } }
 //   โดย populate hotel ให้ได้ { name, address, tel }
 // ===========================================
+
+import { extractError } from "./extractError";
+
 export default async function getBooking(token: string, id: string) {
   const response = await fetch(
     `${process.env.BACKEND_URL}/api/v1/bookings/${id}`,
@@ -21,7 +24,7 @@ export default async function getBooking(token: string, id: string) {
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch booking");
+    throw new Error(await extractError(response, "Could not load booking"));
   }
 
   return await response.json();

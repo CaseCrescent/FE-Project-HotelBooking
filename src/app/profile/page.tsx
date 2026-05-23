@@ -1,227 +1,142 @@
-// ===========================================
-// src/app/profile/page.tsx
-// User Profile Page (Protected — ต้อง login)
-// - ดึงข้อมูล user จาก NextAuth session (name, email, tel, role)
-// - แสดง avatar อักษรย่อ + info card + action buttons
-// - middleware.ts ป้องกัน: ต้อง login ก่อนเข้าหน้านี้
-// - Extra Credit Feature
-// ===========================================
-
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/authOptions";
 import Link from "next/link";
 import DeleteAccountButton from "./DeleteAccountButton";
+import PageShell, { PageHeader } from "@/components/layout/PageShell";
 
-// Helper: แสดงแถว label + value
-function ProfileRow({
-  icon,
-  label,
-  value,
-  last,
-}: {
-  icon: string;
-  label: string;
-  value: string;
-  last?: boolean;
-}) {
-  return (
-    <div
-      style={{
-        paddingBottom: last ? "0" : "18px",
-        marginBottom: last ? "0" : "18px",
-        borderBottom: last ? "none" : "1px solid rgba(255,255,255,0.04)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "5px" }}>
-        <span style={{ fontSize: "14px" }}>{icon}</span>
-        <span
-          style={{
-            fontSize: "10px",
-            color: "rgba(255,255,255,0.3)",
-            fontWeight: "700",
-            letterSpacing: "1.5px",
-            textTransform: "uppercase",
-          }}
-        >
-          {label}
-        </span>
-      </div>
-      <p style={{ color: "#e5e7eb", fontSize: "15px", paddingLeft: "22px", wordBreak: "break-all" }}>
-        {value}
-      </p>
-    </div>
-  );
-}
+export const metadata = { title: "Profile · Hotel Booking" };
 
 export default async function ProfilePage() {
   const session = await getServerSession(authOptions);
 
-  // middleware.ts ควรจับได้แล้ว แต่ป้องกันไว้อีกชั้น
   if (!session?.user) {
     return (
-      <main
-        style={{
-          minHeight: "100vh",
-          backgroundColor: "#0d0b1a",
-          paddingTop: "120px",
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <h1 style={{ color: "white", fontSize: "20px" }}>Please sign in.</h1>
-      </main>
+      <PageShell narrow>
+        <PageHeader eyebrow="Profile" title="Please sign in." align="center" />
+        <div className="flex justify-center">
+          <Link
+            href="/login"
+            className="inline-flex items-center px-7 py-3.5 rounded-full gradient-gold text-[#1a1730] font-bold tracking-widest text-xs uppercase shadow-soft"
+          >
+            Go to sign in
+          </Link>
+        </div>
+      </PageShell>
     );
   }
 
   const { name, email, tel, role } = session.user;
-
-  // สร้างอักษรย่อ 1-2 ตัวจากชื่อ (e.g. "John Doe" → "JD")
-  const initials = name
+  const initials = (name || "?")
     .split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
-
   const isAdmin = role === "admin";
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#0d0b1a",
-        paddingTop: "120px",
-        paddingBottom: "64px",
-        paddingLeft: "16px",
-        paddingRight: "16px",
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: "460px" }}>
+    <PageShell narrow>
+      <PageHeader eyebrow="Account" title="Your profile" align="center" />
 
-        {/* ===== Avatar + Name + Role Badge ===== */}
-        <div style={{ textAlign: "center", marginBottom: "36px" }}>
-          {/* Avatar circle — gradient gold */}
+      {/* Avatar + identity */}
+      <div className="flex flex-col items-center mb-10">
+        <div className="relative">
           <div
-            style={{
-              width: "84px",
-              height: "84px",
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #dcb771 0%, #c5a059 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              margin: "0 auto 16px",
-              fontSize: "30px",
-              fontWeight: "700",
-              color: "#12102a",
-              boxShadow: "0 8px 32px rgba(220,183,113,0.3)",
-            }}
+            className="w-28 h-28 rounded-full flex items-center justify-center text-4xl font-bold text-[#1a1730] gradient-gold shadow-elegant float-y"
+            aria-hidden
           >
             {initials}
           </div>
-
-          {/* Name */}
-          <h1
+          {/* Outer gold ring */}
+          <div
+            className="absolute -inset-2 rounded-full pointer-events-none"
             style={{
-              color: "#e5e7eb",
-              fontSize: "22px",
-              fontWeight: "700",
-              marginBottom: "10px",
+              border: "1px solid rgba(220, 183, 113, 0.25)",
+              boxShadow: "0 0 40px rgba(220, 183, 113, 0.15)",
             }}
-          >
-            {name}
-          </h1>
-
-          {/* Role badge */}
-          <span
-            style={{
-              display: "inline-block",
-              padding: "5px 16px",
-              borderRadius: "20px",
-              fontSize: "11px",
-              fontWeight: "700",
-              letterSpacing: "1.5px",
-              textTransform: "uppercase",
-              background: isAdmin
-                ? "rgba(220,183,113,0.12)"
-                : "rgba(255,255,255,0.05)",
-              color: isAdmin ? "#dcb771" : "#9ca3af",
-              border: `1px solid ${isAdmin ? "rgba(220,183,113,0.3)" : "rgba(255,255,255,0.1)"}`,
-            }}
-          >
-            {isAdmin ? "✦ Admin" : "User"}
-          </span>
+          />
         </div>
-
-        {/* ===== Account Info Card ===== */}
-        <div
-          style={{
-            backgroundColor: "#1a1730",
-            borderRadius: "16px",
-            padding: "28px 28px 10px",
-            border: "1px solid rgba(220,183,113,0.08)",
-            marginBottom: "16px",
-          }}
+        <h2 className="text-white text-2xl font-bold mt-6">{name}</h2>
+        <span
+          className={`mt-3 inline-block px-4 py-1 rounded-full text-[10px] font-bold tracking-[0.32em] uppercase border ${
+            isAdmin
+              ? "text-gold-light bg-[rgba(220,183,113,0.12)] border-[rgba(220,183,113,0.3)]"
+              : "text-white/65 bg-white/[0.04] border-white/10"
+          }`}
         >
-          <p
-            style={{
-              color: "rgba(255,255,255,0.25)",
-              fontSize: "10px",
-              fontWeight: "700",
-              letterSpacing: "2px",
-              textTransform: "uppercase",
-              marginBottom: "22px",
-            }}
-          >
-            Account Information
-          </p>
+          {isAdmin ? "✦ Admin" : "Member"}
+        </span>
+      </div>
 
-          <ProfileRow icon="👤" label="Full Name" value={name} />
-          <ProfileRow icon="📧" label="Email" value={email} />
-          <ProfileRow icon="📞" label="Telephone" value={tel} last />
-        </div>
+      {/* Info card */}
+      <div className="glass-card-gold p-6 md:p-7 mb-5">
+        <div className="text-[10px] tracking-[0.32em] uppercase text-gold mb-5">Account info</div>
+        <Row label="Full Name" value={name} />
+        <Row label="Email" value={email} />
+        <Row label="Telephone" value={tel || "—"} last />
+      </div>
 
-        {/* ===== Action Buttons ===== */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {/* View Bookings — Gold, lifts on hover */}
+      {/* Quick actions */}
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        {!isAdmin && (
           <Link
             href="/mybooking"
-            className="block text-center font-bold no-underline transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_32px_rgba(220,183,113,0.4)] active:translate-y-0"
-            style={{
-              padding: "14px",
-              borderRadius: "12px",
-              background: "linear-gradient(135deg, #dcb771 0%, #c5a059 100%)",
-              color: "#12102a",
-              fontSize: "15px",
-              boxShadow: "0 4px 20px rgba(220,183,113,0.2)",
-            }}
+            className="rounded-xl p-4 border border-white/[0.08] bg-white/[0.02] hover:border-[#dcb771]/30 hover:bg-[rgba(220,183,113,0.04)] transition-colors group"
           >
-            View My Bookings
+            <div className="text-gold text-xl mb-1">📅</div>
+            <div className="text-white font-bold text-sm">My Bookings</div>
+            <div className="text-white/45 text-xs mt-0.5">View, edit, cancel</div>
           </Link>
-
-          {/* Sign Out — outlined, visible border */}
-          <a
-            href="/api/auth/signout"
-            className="block text-center no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:text-white/90 hover:bg-white/[0.05]"
-            style={{
-              padding: "14px",
-              borderRadius: "12px",
-              border: "1px solid rgba(255,255,255,0.2)",
-              color: "rgba(255,255,255,0.65)",
-              fontSize: "15px",
-              fontWeight: "500",
-            }}
-          >
-            Sign Out
-          </a>
-
-          {/* Delete Account — Danger (Client Component) */}
-          <DeleteAccountButton />
-        </div>
-
+        )}
+        {isAdmin && (
+          <>
+            <Link
+              href="/admin/hotels"
+              className="rounded-xl p-4 border border-white/[0.08] bg-white/[0.02] hover:border-[#dcb771]/30 hover:bg-[rgba(220,183,113,0.04)] transition-colors"
+            >
+              <div className="text-gold text-xl mb-1">🏨</div>
+              <div className="text-white font-bold text-sm">Manage Hotels</div>
+              <div className="text-white/45 text-xs mt-0.5">Add, edit, delete</div>
+            </Link>
+            <Link
+              href="/admin/bookings"
+              className="rounded-xl p-4 border border-white/[0.08] bg-white/[0.02] hover:border-[#dcb771]/30 hover:bg-[rgba(220,183,113,0.04)] transition-colors"
+            >
+              <div className="text-gold text-xl mb-1">📋</div>
+              <div className="text-white font-bold text-sm">All Bookings</div>
+              <div className="text-white/45 text-xs mt-0.5">View, manage</div>
+            </Link>
+          </>
+        )}
+        <Link
+          href="/find"
+          className="rounded-xl p-4 border border-white/[0.08] bg-white/[0.02] hover:border-[#dcb771]/30 hover:bg-[rgba(220,183,113,0.04)] transition-colors"
+        >
+          <div className="text-gold text-xl mb-1">⚡</div>
+          <div className="text-white font-bold text-sm">Find Earliest</div>
+          <div className="text-white/45 text-xs mt-0.5">Soonest room</div>
+        </Link>
       </div>
-    </main>
+
+      {/* Sign-out / delete */}
+      <div className="flex flex-col gap-3 mt-2">
+        <a
+          href="/api/auth/signout"
+          className="block text-center px-6 py-3 rounded-full border border-white/15 text-white/70 text-xs tracking-widest uppercase font-semibold hover:bg-white/[0.04] transition-colors"
+        >
+          Sign Out
+        </a>
+        <DeleteAccountButton />
+      </div>
+    </PageShell>
+  );
+}
+
+function Row({ label, value, last }: { label: string; value: string; last?: boolean }) {
+  return (
+    <div className={`flex justify-between items-center py-3 gap-3 ${last ? "" : "border-b border-white/[0.05]"}`}>
+      <span className="text-white/45 text-[10px] uppercase tracking-widest flex-shrink-0">{label}</span>
+      <span className="text-white/90 text-sm font-medium truncate text-right">{value}</span>
+    </div>
   );
 }

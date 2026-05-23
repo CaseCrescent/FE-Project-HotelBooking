@@ -6,6 +6,7 @@
 // - optional fields ใช้ !== undefined (ต่างจาก createHotel) เพื่อรองรับการ clear ค่าได้
 // - ตรงกับ Backend controllers/hotels.js > exports.updateHotel
 // ===========================================
+
 export default async function updateHotel(
   token: string,
   hotelId: string,
